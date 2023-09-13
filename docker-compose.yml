@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  server-a:
+    build:
+      context: ./server-a
+    ports:
+      - "3000:3000"
+    networks:
+      - app-network
+  server-b:
+    build:
+      context: ./server-b
+    ports:
+      - "8000:8000"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

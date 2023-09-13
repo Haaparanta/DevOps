@@ -1,0 +1,10 @@
+FROM node:latest
+
+WORKDIR /server-b
+
+COPY . /server-b/
+
+RUN npm init -y && npm install express
+
+CMD ["node", "index.js"]
+
