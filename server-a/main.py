@@ -34,10 +34,10 @@ for i in range(20):
     timestamp = current_datetime.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
     message = f"{i+1} {timestamp} {ip_2}:{port_2}"
     if (i == 0):
-        with open('service1.log', 'w') as f:
+        with open('/var/logs/service1.log', 'w+') as f:
             f.write(message + '\n')
     else:
-        with open('service1.log', 'a') as f:
+        with open('/var/logs/service1.log', 'a') as f:
             f.write(message + '\n')
     data = {"key": message}
     try:
@@ -48,7 +48,7 @@ for i in range(20):
 
 
 # send stop to server-b
-with open('service1.log', 'a') as f:
+with open('/var/logs/service1.log', 'a') as f:
     f.write('STOP\n')
 
 try:

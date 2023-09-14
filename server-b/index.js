@@ -54,7 +54,7 @@ app.post('/message', (req, res) => {
     msg = msg + ' ' + ip_1 + ':' + port_1;
     console.log(msg);
     res.json({ "key": msg });
-    fs.appendFile('service2.log', msg + '\n', (err) => {
+    fs.appendFile('/var/logs/service2.log', msg + '\n', (err) => {
         if (err) throw err;
     });
 });

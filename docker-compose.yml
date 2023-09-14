@@ -4,6 +4,8 @@ services:
   server-a:
     build:
       context: ./server-a
+    volumes:
+      - /var/logs/service1.log
     ports:
       - "3000:3000"
     networks:
@@ -11,6 +13,8 @@ services:
   server-b:
     build:
       context: ./server-b
+    volumes:
+      - /var/logs/service2.log
     ports:
       - "8000:8000"
     networks:
