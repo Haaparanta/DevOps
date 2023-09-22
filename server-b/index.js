@@ -36,6 +36,12 @@ fs.access(filePath, fs.constants.F_OK, (err) => {
     }
 });
 
+fs.rm('/app/logs/service2.log', (err) => {
+    if (err) {
+        console.error(err);
+    }
+});
+
 // getting server-a ip and sending server-b ip
 app.get('/ip', (req, res) => {
     ip_1 = req.ip;
@@ -47,6 +53,7 @@ app.get('/ip', (req, res) => {
 // getting message from server-a and sending message with server-b ip and port
 app.post('/message', (req, res) => {
     if (req.body["key"] === 'STOP') {
+        res.json({ "key": "STOP" });
         process.exit(0);
     }
     console.log(req.body["key"]);
@@ -54,7 +61,7 @@ app.post('/message', (req, res) => {
     msg = msg + ' ' + ip_1 + ':' + port_1;
     console.log(msg);
     res.json({ "key": msg });
-    fs.appendFile('/var/logs/service2.log', msg + '\n', (err) => {
+    fs.appendFile('/app/logs/service2.log', msg + '\n', (err) => {
         if (err) throw err;
     });
 });

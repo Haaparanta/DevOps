@@ -1,0 +1,6 @@
+docker network ls
+NETWORK ID     NAME                 DRIVER    SCOPE
+b3558e443209   bridge               bridge    local
+d8e6b9a23074   devops_app-network   bridge    local
+d063a8e2821a   host                 host      local
+fdf146315bc6   none                 null      local

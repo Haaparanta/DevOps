@@ -21,7 +21,7 @@ except FileNotFoundError as e:
 time.sleep(1)
 # Send server-a ip to server-b and get response with server-b ip
 try:
-    response = requests.get(f'http://server-b:{port_2}/ip', timeout=5)
+    response = requests.get(f'http://server-b-vesa:{port_2}/ip', timeout=5)
     ip_2 = response.text
 except requests.RequestException as e:
     print(f"Failed to communicate with server-b: {e}")
@@ -34,25 +34,25 @@ for i in range(20):
     timestamp = current_datetime.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
     message = f"{i+1} {timestamp} {ip_2}:{port_2}"
     if (i == 0):
-        with open('/var/logs/service1.log', 'w+') as f:
+        with open('/app/logs/service1.log', 'w+') as f:
             f.write(message + '\n')
     else:
-        with open('/var/logs/service1.log', 'a') as f:
+        with open('/app/logs/service1.log', 'a') as f:
             f.write(message + '\n')
     data = {"key": message}
     try:
-        response = requests.post(f'http://server-b:{port_2}/message', json=data ,timeout=5)
+        response = requests.post(f'http://server-b-vesa:{port_2}/message', json=data ,timeout=5)
     except requests.RequestException as e:
         print(f"Failed to communicate with server-b: {e}")
     time.sleep(2)
 
 
 # send stop to server-b
-with open('/var/logs/service1.log', 'a') as f:
+with open('/app/logs/service1.log', 'a') as f:
     f.write('STOP\n')
 
 try:
     data = {"key": "STOP"}
-    response = requests.post(f'http://server-b:{port_2}/message', json=data, timeout=5)
+    response = requests.post(f'http://server-b-vesa:{port_2}/message', json=data, timeout=5)
 except requests.RequestException as e:
     print(f"Failed to communicate with server-b: {e}")

@@ -1,20 +1,20 @@
 version: '3.8'
 
 services:
-  server-a:
+  server-a-vesa:
     build:
       context: ./server-a
     volumes:
-      - /var/logs/:/var/logs/
+      - ./logs:/app/logs
     ports:
       - "3000:3000"
     networks:
       - app-network
-  server-b:
+  server-b-vesa:
     build:
       context: ./server-b
     volumes:
-      - /var/logs/:/var/logs/
+      - ./logs:/app/logs
     ports:
       - "8000:8000"
     networks:
