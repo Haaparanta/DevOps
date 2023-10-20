@@ -10,7 +10,7 @@ async function listenToRabbitMQ() {
   
   while (!connected) {
     try {
-      const connection = await amqp.connect('amqp://rabbitmq-vesa');  // Adjust the URL as per your RabbitMQ server
+      const connection = await amqp.connect('amqp://rabbitmq-vesa');
       const channel = await connection.createChannel();
       const exchange = 'exchange';
       const topic = 'log';
@@ -23,12 +23,9 @@ async function listenToRabbitMQ() {
         if (msg !== null) {
           logs.push(msg.content.toString());
           channel.ack(msg);
-          console.log('Received:', msg.content.toString());
         }
       });
-
-      connected = true;  // Set connected to true to exit the loop
-
+      connected = true;
     } catch (error) {
       console.error('Error:', error.message, '. Retrying in 5 seconds...');
       await new Promise(resolve => setTimeout(resolve, 5000));

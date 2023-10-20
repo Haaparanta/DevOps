@@ -1,6 +1,6 @@
 FROM python:latest
 
-RUN pip install requests pika grpcio grpcio-tools
+RUN pip install requests pika grpcio grpcio-tools docker
 
 WORKDIR /server-a
 

@@ -1,21 +1,23 @@
 version: '3.8'
 services:
   server-a-vesa:
-    image: server-a-image
+    image: server-a-vesa-image
     build: ./server-a
     depends_on:
       - rabbitmq-vesa
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
 
   server-b-vesa:
-    image: server-b-image
+    image: server-b-vesa-image
     build: ./server-b
-    ports:
-      - "8000:8000"
     depends_on:
       - rabbitmq-vesa
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
 
   monitor-vesa:
-    image: monitor-image
+    image: monitor-vesa-image
     build: ./monitor
     ports:
       - "8087:8087"
@@ -24,6 +26,3 @@ services:
 
   rabbitmq-vesa:
     image: "rabbitmq"
-    ports:
-      - "15672:15672"
-      - "5672:5672"
