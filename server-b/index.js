@@ -1,73 +1,56 @@
 const express = require('express');
-const bodyParser = require('body-parser');
+const amqp = require('amqplib');
+const grpc = require('grpc');
+const protoLoader = require('@grpc/proto-loader');
+
 const app = express();
-app.use(bodyParser.json());
-const fs = require('fs');
+const PORT = 8000;
 
-// Service 1 (server-a)
-let ip_1 = '0.0.0.0';
-const port_1 = 3000;
+app.use(express.json());
 
-// Service 2 (server-b)
-let ip_2 = '0.0.0.0';
-const port_2 = 8000;
-
-// getting server-a ip from hosts file, there is a probably better way to do this. But this is my way :)
-const filePath = '/etc/hosts';
-fs.access(filePath, fs.constants.F_OK, (err) => {
-    if (err) {
-        console.error(`${filePath} does not exist.`);
-    } else {
-        fs.readFile(filePath, 'utf8', (readErr, data) => {
-            if (readErr) {
-                console.error(`Error reading ${filePath}: ${readErr.message}`);
-            } else {
-                console.log(`Contents of ${filePath}:\n`, data);
-                const lines = data.split('\n');
-                let lastLine = lines[lines.length - 1];
-                // Get server a port ip from last line
-                ip_2 = lastLine.split('\t')[0];
-                if (ip_2 === '') {
-                    lastLine = lines[lines.length - 2];
-                    ip_2 = lastLine.split('\t')[0];
-                }
-            }
-        });
-    }
-});
-
-fs.rm('/app/logs/service2.log', (err) => {
-    if (err) {
-        console.error(err);
-    }
-});
-
-// getting server-a ip and sending server-b ip
-app.get('/ip', (req, res) => {
-    ip_1 = req.ip;
-    res.send(ip_2);
-    console.log('ip_1: ' + ip_1);
-    console.log('ip_2: ' + ip_2);
-});
-
-// getting message from server-a and sending message with server-b ip and port
 app.post('/message', (req, res) => {
-    if (req.body["key"] === 'STOP') {
-        res.json({ "key": "STOP" });
-        process.exit(0);
-    }
-    console.log(req.body["key"]);
-    let msg = req.body["key"];
-    msg = msg + ' ' + ip_1 + ':' + port_1;
-    console.log(msg);
-    res.json({ "key": msg });
-    fs.appendFile('/app/logs/service2.log', msg + '\n', (err) => {
-        if (err) throw err;
-    });
+  const message = req.body.key;
+  console.log('Received:', message);
+  const newMessage = `${message} ${req.ip}:${req.socket.localPort}`;
+  sendToRabbitMQ('log', newMessage);
+  res.json({ key: newMessage });
 });
 
-// listening port 8000
-app.listen(port_2, '0.0.0.0', () => {
-   console.log('Server running on port 8000');
-});
+async function checkRabbitMQConnection() {
+  try {
+    const conn = await amqp.connect('amqp://rabbitmq-vesa');
+    await conn.close();
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
 
+async function waitForRabbitMQ() {
+  let isConnected = await checkRabbitMQConnection();
+  while (!isConnected) {
+    console.log('Waiting for RabbitMQ...');
+    await new Promise(resolve => setTimeout(resolve, 5000));  // retry every 5 seconds
+    isConnected = await checkRabbitMQConnection();
+  }
+}
+
+async function sendToRabbitMQ(topic, message) {
+  try {
+    const conn = await amqp.connect('amqp://rabbitmq-vesa');
+    const channel = await conn.createChannel();
+    await channel.assertExchange('exchange', 'topic', { durable: false });
+    channel.publish('exchange', topic, Buffer.from(message));
+    await channel.close();
+    await conn.close();
+  } catch (error) {
+    console.error('Error:', error.message);
+  }
+}
+
+
+waitForRabbitMQ().then(() => {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+});

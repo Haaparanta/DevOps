@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+service Service2 {
+  rpc CountZero (CountRequest) returns (CountResponse);
+}
+
+message CountRequest {
+  string message = 1;
+}
+
+message CountResponse {
+  int32 count = 1;
+}

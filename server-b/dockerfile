@@ -4,7 +4,7 @@ WORKDIR /server-b
 
 COPY . /server-b/
 
-RUN npm init -y && npm install express
+RUN npm init -y && npm install express amqplib grpc @grpc/proto-loader
 
 CMD ["node", "index.js"]
 

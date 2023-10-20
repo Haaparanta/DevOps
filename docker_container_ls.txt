@@ -1,4 +1,0 @@
-docker container ls
-CONTAINER ID   IMAGE                  COMMAND                  CREATED         STATUS          PORTS                    NAMES
-4f6df054c8e3   devops-server-a-vesa   "python main.py"         3 minutes ago   Up 19 seconds   0.0.0.0:3000->3000/tcp   devops-server-a-vesa-1
-2ca9d58a6c94   devops-server-b-vesa   "docker-entrypoint.s…"   3 minutes ago   Up 19 seconds   0.0.0.0:8000->8000/tcp   devops-server-b-vesa-1

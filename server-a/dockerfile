@@ -1,6 +1,6 @@
 FROM python:latest
 
-RUN pip install requests
+RUN pip install requests pika grpcio grpcio-tools
 
 WORKDIR /server-a
 

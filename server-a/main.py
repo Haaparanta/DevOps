@@ -1,58 +1,47 @@
 import time
-from datetime import datetime
 import requests
+import pika
+import grpc
+import service2_pb2
+import service2_pb2_grpc
 
-# Service 1 (server-a)
-ip_1 = '0.0.0.0'
-port_1 = 3000
+counter = 0
 
-# Service 2 (server-b)
-ip_2 = '0.0.0.0'
-port_2 = 8000
+def send_messages():
+    global counter
+    while True:
+        try:
+            connection = pika.BlockingConnection(pika.ConnectionParameters('rabbitmq-vesa'))
+            channel = connection.channel()
+            channel.exchange_declare(exchange='exchange', exchange_type='topic')
+            break  # Exit the while loop if connection is successful
+        except pika.exceptions.AMQPConnectionError:
+            time.sleep(5)
 
-# getting server-a ip from hosts file, there is a probably better way to do this. But this is my way :)
-try:
-    with open('../etc/hosts', 'r') as f:
-        last_line = f.readlines()[-1]
-        ip_1 = last_line.split('\t')[0]
-except FileNotFoundError as e:
-        print(f"Failed to read file: {e}")
+    for i in range(21):
+        timestamp = time.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
+        message = f'SND {counter} {timestamp} 192.168.2.22:8000'
 
-time.sleep(1)
-# Send server-a ip to server-b and get response with server-b ip
-try:
-    response = requests.get(f'http://server-b-vesa:{port_2}/ip', timeout=5)
-    ip_2 = response.text
-except requests.RequestException as e:
-    print(f"Failed to communicate with server-b: {e}")
+        # Send message to RabbitMQ
+        channel.basic_publish(exchange='exchange', routing_key='message', body=message)
 
-time.sleep(1)
+        # Send message via HTTP
+        response = requests.post('http://server-b-vesa:8000/message', json={'key': message}, timeout=5)
+        response_log = f'{response.status_code} {timestamp}'
+        channel.basic_publish(exchange='exchange', routing_key='log', body=response_log)
 
-# Sending the time logs to server-b
-for i in range(20):
-    current_datetime = datetime.utcnow()
-    timestamp = current_datetime.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
-    message = f"{i+1} {timestamp} {ip_2}:{port_2}"
-    if (i == 0):
-        with open('/app/logs/service1.log', 'w+') as f:
-            f.write(message + '\n')
-    else:
-        with open('/app/logs/service1.log', 'a') as f:
-            f.write(message + '\n')
-    data = {"key": message}
-    try:
-        response = requests.post(f'http://server-b-vesa:{port_2}/message', json=data ,timeout=5)
-    except requests.RequestException as e:
-        print(f"Failed to communicate with server-b: {e}")
-    time.sleep(2)
+        # Send message via gRPC
 
 
-# send stop to server-b
-with open('/app/logs/service1.log', 'a') as f:
-    f.write('STOP\n')
+        counter += 1
+        time.sleep(2)
 
-try:
-    data = {"key": "STOP"}
-    response = requests.post(f'http://server-b-vesa:{port_2}/message', json=data, timeout=5)
-except requests.RequestException as e:
-    print(f"Failed to communicate with server-b: {e}")
+    channel.basic_publish(exchange='exchange', routing_key='log', body='SND STOP')
+
+    connection.close()
+
+    while (True) :
+        time.sleep(5)
+
+if __name__ == '__main__':
+    send_messages()

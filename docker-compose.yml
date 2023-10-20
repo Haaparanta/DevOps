@@ -1,25 +1,29 @@
 version: '3.8'
-
 services:
   server-a-vesa:
-    build:
-      context: ./server-a
-    volumes:
-      - ./logs:/app/logs
-    ports:
-      - "3000:3000"
-    networks:
-      - app-network
+    image: server-a-image
+    build: ./server-a
+    depends_on:
+      - rabbitmq-vesa
+
   server-b-vesa:
-    build:
-      context: ./server-b
-    volumes:
-      - ./logs:/app/logs
+    image: server-b-image
+    build: ./server-b
     ports:
       - "8000:8000"
-    networks:
-      - app-network
+    depends_on:
+      - rabbitmq-vesa
 
-networks:
-  app-network:
-    driver: bridge
+  monitor-vesa:
+    image: monitor-image
+    build: ./monitor
+    ports:
+      - "8087:8087"
+    depends_on:
+      - rabbitmq-vesa
+
+  rabbitmq-vesa:
+    image: "rabbitmq"
+    ports:
+      - "15672:15672"
+      - "5672:5672"
