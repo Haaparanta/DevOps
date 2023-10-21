@@ -18,8 +18,6 @@ const packageDefinition = protoLoader.loadSync('./service2.proto', {
 
 const protoDescriptor = grpc.loadPackageDefinition(packageDefinition);
 
-// Assuming your .proto file has a package name, adjust accordingly
-// If there's no package name, you can omit the package name part
 const service2 = protoDescriptor.Service2;
 
 function getServer() {
@@ -38,10 +36,6 @@ rpcServer.bindAsync('0.0.0.0:8001', grpc.ServerCredentials.createInsecure(), () 
   rpcServer.start();
   console.log('Server running on http://0.0.0.0:8001');
 });
-
-
-
-
 
 app.use(express.json());
 
@@ -67,7 +61,7 @@ async function waitForRabbitMQ() {
   let isConnected = await checkRabbitMQConnection();
   while (!isConnected) {
     console.log('Waiting for RabbitMQ...');
-    await new Promise(resolve => setTimeout(resolve, 5000));  // retry every 5 seconds
+    await new Promise(resolve => setTimeout(resolve, 5000));
     isConnected = await checkRabbitMQConnection();
   }
 }
