@@ -1,11 +1,47 @@
 const express = require('express');
 const amqp = require('amqplib');
-const grpc = require('grpc');
+const grpc = require('@grpc/grpc-js');
 const protoLoader = require('@grpc/proto-loader');
 const send = require('send');
 
 const app = express();
 const PORT = 8000;
+
+
+const packageDefinition = protoLoader.loadSync('./service2.proto', {
+  keepCase: true,
+  longs: String,
+  enums: String,
+  defaults: true,
+  oneofs: true
+});
+
+const protoDescriptor = grpc.loadPackageDefinition(packageDefinition);
+
+// Assuming your .proto file has a package name, adjust accordingly
+// If there's no package name, you can omit the package name part
+const service2 = protoDescriptor.Service2;
+
+function getServer() {
+  var server = new grpc.Server();
+  server.addService(service2.service, {
+    CountZero: (call, callback) => {
+      const count = (call.request.message.match(/0/g) || []).length;
+      callback(null, { count });
+    }
+  });
+  return server;
+}
+
+var rpcServer = getServer();
+rpcServer.bindAsync('0.0.0.0:8001', grpc.ServerCredentials.createInsecure(), () => {
+  rpcServer.start();
+  console.log('Server running on http://0.0.0.0:8001');
+});
+
+
+
+
 
 app.use(express.json());
 

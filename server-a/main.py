@@ -48,8 +48,16 @@ def send_messages():
         except Exception as error:
             channel.basic_publish(exchange='exchange', routing_key='log', body=f'ERR {error}')
 
-        # Send message via gRPC
 
+        # Send message via gRPC
+        try:
+            with grpc.insecure_channel(f'{ip}:8001') as rpcChannel:
+                stub = service2_pb2_grpc.Service2Stub(rpcChannel)
+                response = stub.CountZero(service2_pb2.CountRequest(message=message))
+                grpc_message = f'RPC {response.count}'
+                channel.basic_publish(exchange='exchange', routing_key='message', body=grpc_message)
+        except Exception as error:
+            channel.basic_publish(exchange='exchange', routing_key='log', body=f'ERR {error}')
 
         counter += 1
         time.sleep(2)
