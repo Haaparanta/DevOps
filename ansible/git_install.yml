@@ -1,0 +1,19 @@
+---
+- name: Setup Git and Check Uptime
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Ensure the latest version of Git is installed
+      apt:
+        name: git
+        state: latest
+        update_cache: yes
+
+    - name: Check uptime of the host
+      command: uptime
+      register: uptime_result
+
+    - name: Display the uptime
+      debug:
+        var: uptime_result.stdout_lines
