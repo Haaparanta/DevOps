@@ -1,9 +1,0 @@
-FROM node:latest
-
-WORKDIR /monitor/
-
-COPY . /monitor/
-
-RUN npm init -y && npm install express amqplib
-
-CMD ["node", "index.js"]
